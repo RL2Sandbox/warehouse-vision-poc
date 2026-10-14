@@ -23,8 +23,8 @@ from display.status_display import StatusDisplay
 # ============================================================
 
 # Do not run expensive detection on every camera frame.
-BARCODE_CHECK_EVERY = 3
-DAMAGE_CHECK_EVERY = 3
+BARCODE_CHECK_EVERY = 8
+DAMAGE_CHECK_EVERY = 6
 
 # Prevent immediate detection of the next carton while the
 # success message is being shown.
