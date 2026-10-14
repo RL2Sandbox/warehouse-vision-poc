@@ -10,6 +10,10 @@ from session.session_manager import (
     reset
 )
 
+#from cloud.gcp_upload import upload_record
+from status.status_display import StatusDisplay
+status= StatusDisplay()
+
 print("Warehouse Vision POC Started")
 
 while True:
