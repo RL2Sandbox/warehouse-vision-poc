@@ -10,7 +10,7 @@ from session.session_manager import (
 
 # from cloud.gcp_upload import upload_record
 
-from status.status_display import StatusDisplay
+from display.status_display import StatusDisplay
 
 
 # Create ONE status object for the application
