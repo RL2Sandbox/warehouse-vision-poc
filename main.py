@@ -60,6 +60,7 @@ frame_number = 0
 
 success_time = None
 
+yolo_display_frame= None
 
 print("Warehouse Vision POC started.")
 print("Press Q to quit.")
