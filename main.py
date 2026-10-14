@@ -156,7 +156,7 @@ try:
             and frame_number % DAMAGE_CHECK_EVERY == 0
         ):
 
-            damage_result = process_damage_frame(
+            damage_result, yolo_display_frame = process_damage_frame(
                 frame
             )
 
