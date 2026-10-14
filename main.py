@@ -95,9 +95,7 @@ while True:
         )
 
 
-        update_damage(
-            result["image_path"]
-        )
+        update_damage(result)
 
 
         print("Damage stored.")
