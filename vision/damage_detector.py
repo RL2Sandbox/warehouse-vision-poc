@@ -1,15 +1,6 @@
 # Damage detection module
 # Damage detection module
 
-def detect_damage():
-
-    return {
-        "damage_found": True,
-        "damage_type": "crush_dent",
-        "confidence": 0.90,
-        "image_path": "damage_001.jpg"
-    }
-
 from ultralytics import YOLO
 import cv2
 import time
@@ -21,6 +12,8 @@ import os
 # ============================================================
 
 MODEL_PATH = "model/weights.pt"
+
+CONFIDENCE_THRESHOLD=0.50
 
 model = YOLO(MODEL_PATH)
 
@@ -76,7 +69,10 @@ def process_damage_frame(frame):
     confidence = float(best_box.conf[0])
 
     damage_type = model.names[class_id]
-
+    
+    # Ignore low-confidence detections
+    if confidence < CONFIDENCE_THRESHOLD:
+        return None
 
     # ========================================================
     # CREATE ANNOTATED IMAGE
