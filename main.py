@@ -17,6 +17,7 @@ from session.session_manager import (
 
 from display.status_display import StatusDisplay
 
+from cloud.gcp_upload import upload_record
 
 # ============================================================
 # SETTINGS
@@ -201,45 +202,78 @@ try:
         # COMPLETE INSPECTION
         # ====================================================
 
-        if (
+       if (
             success_time is None
             and ready()
         ):
-
+        
             record = get_session()
-
+            
             print("\n" + "=" * 60)
             print("COMPLETE RECORD FOUND")
             print("=" * 60)
-
+            
             print(record)
-
-
-            # =================================================
-            # GCP PLACEHOLDER
-            # =================================================
-
-            print("\nUploading to GCP...")
-            print("(placeholder only)")
-
-
-            # IMPORTANT:
-            # This is NOT genuinely saved to GCP yet.
-            #
-            # Therefore we should NOT tell the operator
-            # "INSPECTION SAVED" yet.
-            #
-            # For this integration test, show that the
-            # inspection itself is complete.
-
-            status.set_status(
-                message="INSPECTION COMPLETE",
-                submessage="GCP upload not connected yet",
-                status_type="success"
+            
+            
+            # ========================================================
+            # UPLOAD TO GCP
+            # ========================================================
+            
+            print("\nUploading inspection to GCP...")
+            
+            status.show_uploading()
+            
+            upload_success = upload_record(record)
+            
+            
+            # ========================================================
+            # UPLOAD SUCCESS
+            # ========================================================
+            
+            if upload_success:
+            
+                print("Inspection uploaded successfully.")
+                
+                barcode_data = record.get(
+                    "barcode",
+                    {}
+                )
+                
+                damage_data = record.get(
+                    "damage",
+                    {}
+                )
+                
+                status.show_inspection_saved(
+                    ma_number=barcode_data.get(
+                        "MA_Number"
+                    ),
+                    damage_type=damage_data.get(
+                        "damage_type"
+                    ),
+                    confidence=damage_data.get(
+                        "confidence"
+                    )
             )
-
+            
+            # Start success-display timer.
+            # Session will reset afterwards.
             success_time = time.time()
-
+            
+            
+            # ========================================================
+            # UPLOAD FAILED
+            # ========================================================
+            
+            else:
+            
+                print("Inspection upload FAILED.")
+                
+                status.show_save_failed(
+                    "GCP upload failed - inspection not reset"
+                )
+    
 
         # ====================================================
         # DRAW OPERATOR STATUS
