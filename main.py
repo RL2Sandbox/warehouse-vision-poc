@@ -1,5 +1,12 @@
-from barcode.scan_trial import scan_barcode
-from vision.damage_detector import detect_damage
+import cv2
+import time
+
+from camera.camera_manager import CameraManager
+
+from barcode.scan_trial import process_barcode_frame
+
+from vision.damage_detector import process_damage_frame
+
 from session.session_manager import (
     update_barcode,
     update_damage,
@@ -8,173 +15,279 @@ from session.session_manager import (
     reset
 )
 
-# from cloud.gcp_upload import upload_record
-
 from display.status_display import StatusDisplay
 
 
-# Create ONE status object for the application
+# ============================================================
+# SETTINGS
+# ============================================================
+
+# Do not run expensive detection on every camera frame.
+BARCODE_CHECK_EVERY = 3
+DAMAGE_CHECK_EVERY = 3
+
+# Prevent immediate detection of the next carton while the
+# success message is being shown.
+SUCCESS_DISPLAY_SECONDS = 3
+
+
+# ============================================================
+# INITIALISE SYSTEM
+# ============================================================
+
+camera = CameraManager(
+    width=1280,
+    height=720
+)
+
 status = StatusDisplay()
 
+print("Warehouse Vision POC starting...")
 
-print("Warehouse Vision POC Started")
+camera.start()
 
-# Initial system state
 status.show_ready()
 
 
-while True:
+# ============================================================
+# SESSION STATE
+# ============================================================
 
-    print("\nChoose an action:")
-    print("1 = Scan Barcode")
-    print("2 = Detect Damage")
-    print("3 = Exit")
+barcode_captured = False
+damage_captured = False
 
-    choice = input("> ")
+frame_number = 0
 
-
-    # ========================================================
-    # OPTION 1 - SCAN BARCODE
-    # ========================================================
-
-    if choice == "1":
-
-        barcode_data = scan_barcode()
-
-        if barcode_data is None:
-
-            print("No barcode captured.")
-
-            status.show_error(
-                "No barcode captured"
-            )
-
-        else:
-
-            update_barcode(barcode_data)
-
-            print("Barcode stored.")
-            print(barcode_data)
-
-            # Tell status system that barcode was captured
-            status.show_barcode_captured(
-                barcode_data
-            )
-
-            # We now need the damage
-            status.show_waiting_for_damage()
+success_time = None
 
 
-    # ========================================================
-    # OPTION 2 - DETECT DAMAGE
-    # ========================================================
-
-    elif choice == "2":
-
-        result = detect_damage()
-
-        if result is None:
-
-            print("No damage result returned.")
-
-            status.show_error(
-                "No damage captured"
-            )
-
-            continue
+print("Warehouse Vision POC started.")
+print("Press Q to quit.")
 
 
-        print(
-            f"Damage Type: "
-            f"{result['damage_type']}"
-        )
+# ============================================================
+# MAIN LIVE CAMERA LOOP
+# ============================================================
 
-        print(
-            f"Confidence: "
-            f"{result['confidence']}"
-        )
+try:
 
-
-        update_damage(result)
-
-
-        print("Damage stored.")
-
-
-        # Tell status system what was captured
-        status.show_damage_captured(
-            result["damage_type"],
-            result["confidence"]
-        )
-
-
-        # If barcode hasn't been captured yet,
-        # the operator needs to scan it next.
-        if not ready():
-
-            status.show_waiting_for_barcode()
-
-
-    # ========================================================
-    # OPTION 3 - EXIT
-    # ========================================================
-
-    elif choice == "3":
-
-        print("Exiting...")
-        break
-
-
-    # ========================================================
-    # INVALID OPTION
-    # ========================================================
-
-    else:
-
-        print("Invalid option.")
-
-        status.show_error(
-            "Invalid menu option"
-        )
-
-        continue
-
-
-    # ========================================================
-    # CHECK WHETHER INSPECTION IS COMPLETE
-    # ========================================================
-
-    if ready():
-
-        print("\nCOMPLETE RECORD FOUND")
-
-        record = get_session()
-
-        print(record)
-
+    while True:
 
         # ----------------------------------------------------
-        # FOR NOW GCP IS STILL PLACEHOLDER
+        # GET ONE FRAME FROM THE SHARED CAMERA
         # ----------------------------------------------------
 
-        print("\nUploading to GCP...")
-        print("(placeholder only)")
+        rgb_frame = camera.get_frame()
+
+        # CameraManager supplies RGB888.
+        # OpenCV normally displays BGR.
+        frame = cv2.cvtColor(
+            rgb_frame,
+            cv2.COLOR_RGB2BGR
+        )
+
+        frame_number += 1
 
 
-        # IMPORTANT:
-        #
-        # Do NOT call:
-        #
-        # status.show_inspection_saved()
-        #
-        # yet.
-        #
-        # We should only show INSPECTION SAVED
-        # after the REAL GCP upload succeeds.
+        # ====================================================
+        # SUCCESS / RESET DELAY
+        # ====================================================
+
+        if success_time is not None:
+
+            elapsed = time.time() - success_time
+
+            if elapsed >= SUCCESS_DISPLAY_SECONDS:
+
+                reset()
+
+                barcode_captured = False
+                damage_captured = False
+
+                success_time = None
+
+                status.show_ready()
+
+                print("\nReady for next carton.")
 
 
-        reset()
+        # ====================================================
+        # BARCODE DETECTION
+        # ====================================================
 
-        print("Session reset.")
+        if (
+            success_time is None
+            and not barcode_captured
+            and frame_number % BARCODE_CHECK_EVERY == 0
+        ):
 
-        status.show_ready()
+            barcode_data = process_barcode_frame(
+                frame
+            )
+
+            if barcode_data is not None:
+
+                update_barcode(
+                    barcode_data
+                )
+
+                barcode_captured = True
+
+                print("\nBarcode stored.")
+                print(barcode_data)
+
+                status.show_barcode_captured(
+                    barcode_data
+                )
+
+                if not damage_captured:
+
+                    status.show_waiting_for_damage()
+
+
+        # ====================================================
+        # DAMAGE DETECTION
+        # ====================================================
+
+        if (
+            success_time is None
+            and not damage_captured
+            and frame_number % DAMAGE_CHECK_EVERY == 0
+        ):
+
+            damage_result = process_damage_frame(
+                frame
+            )
+
+            if damage_result is not None:
+
+                update_damage(
+                    damage_result
+                )
+
+                damage_captured = True
+
+                print("\nDamage stored.")
+
+                print(
+                    "Damage Type:",
+                    damage_result["damage_type"]
+                )
+
+                print(
+                    "Confidence:",
+                    f"{damage_result['confidence'] * 100:.1f}%"
+                )
+
+                status.show_damage_captured(
+                    damage_result["damage_type"],
+                    damage_result["confidence"]
+                )
+
+                if not barcode_captured:
+
+                    status.show_waiting_for_barcode()
+
+
+        # ====================================================
+        # COMPLETE INSPECTION
+        # ====================================================
+
+        if (
+            success_time is None
+            and ready()
+        ):
+
+            record = get_session()
+
+            print("\n" + "=" * 60)
+            print("COMPLETE RECORD FOUND")
+            print("=" * 60)
+
+            print(record)
+
+
+            # =================================================
+            # GCP PLACEHOLDER
+            # =================================================
+
+            print("\nUploading to GCP...")
+            print("(placeholder only)")
+
+
+            # IMPORTANT:
+            # This is NOT genuinely saved to GCP yet.
+            #
+            # Therefore we should NOT tell the operator
+            # "INSPECTION SAVED" yet.
+            #
+            # For this integration test, show that the
+            # inspection itself is complete.
+
+            status.set_status(
+                message="INSPECTION COMPLETE",
+                submessage="GCP upload not connected yet",
+                status_type="success"
+            )
+
+            success_time = time.time()
+
+
+        # ====================================================
+        # DRAW OPERATOR STATUS
+        # ====================================================
+
+        display_frame = status.draw(
+            frame
+        )
+
+
+        # ====================================================
+        # SHOW LIVE CAMERA
+        # ====================================================
+
+        cv2.imshow(
+            "Warehouse Vision Inspection",
+            display_frame
+        )
+
+
+        # ====================================================
+        # KEYBOARD
+        # ====================================================
+
+        key = cv2.waitKey(1) & 0xFF
+
+        if key == ord("q"):
+
+            print("\nExiting Warehouse Vision POC...")
+            break
+
+
+except KeyboardInterrupt:
+
+    print("\nStopped using Ctrl+C.")
+
+
+except Exception as error:
+
+    print(
+        f"\nSystem error: {error}"
+    )
+
+    status.show_error(
+        str(error)
+    )
+
+
+finally:
+
+    # ========================================================
+    # CLEAN SHUTDOWN
+    # ========================================================
+
+    camera.stop()
+
+    cv2.destroyAllWindows()
+
+    print("System closed safely.")
