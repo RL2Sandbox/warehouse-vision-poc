@@ -105,6 +105,9 @@ try:
                 barcode_captured = False
                 damage_captured = False
 
+                # Clear the previous YOLO bounding-box frame
+                yolo_display_frame = None
+
                 success_time = None
 
                 status.show_ready()
