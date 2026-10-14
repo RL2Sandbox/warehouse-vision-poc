@@ -238,8 +238,15 @@ try:
         # DRAW OPERATOR STATUS
         # ====================================================
 
+        # Show YOLO bounding boxes when available
+        if yolo_display_frame is not None:
+            display_frame = yolo_display_frame.copy()
+        else:
+            display_frame = frame.copy()
+
+        # Put operator status on top
         display_frame = status.draw(
-            frame
+            display_frame
         )
 
 
