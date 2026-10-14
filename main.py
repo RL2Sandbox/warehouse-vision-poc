@@ -241,13 +241,18 @@ try:
         # DRAW OPERATOR STATUS
         # ====================================================
 
-        # Show YOLO bounding boxes when available
-        if yolo_display_frame is not None:
-            display_frame = yolo_display_frame.copy()
-        else:
-            display_frame = frame.copy()
+        # Start with the CURRENT live camera frame
+        display_frame = frame.copy()
 
-        # Put operator status on top
+        # Only show the YOLO annotated frame while
+        # damage detection is actively running
+        if (
+            not damage_captured
+            and yolo_display_frame is not None
+        ):
+            display_frame = yolo_display_frame.copy()
+        
+        # Draw operator status on top
         display_frame = status.draw(
             display_frame
         )
