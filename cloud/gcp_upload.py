@@ -11,7 +11,7 @@ import time
 # GCP CONFIGURATION
 # ============================================================
 
-BUCKET_NAME = "YOUR_ACTUAL_BUCKET_NAME"
+BUCKET_NAME = "vision_rpi_camera"
 
 
 # ============================================================
