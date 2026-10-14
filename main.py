@@ -170,8 +170,12 @@ try:
                 )
 
                 damage_captured = True
-
+                
+                # Do not leave the last YOLO frame frozen on screen
+                yolo_display_frame = None
+                
                 print("\nDamage stored.")
+
 
                 print(
                     "Damage Type:",
