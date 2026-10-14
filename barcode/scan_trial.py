@@ -226,6 +226,62 @@ def decode_scan_area(scan_area):
 
     return None, None
 
+# ============================================================
+# PROCESS ONE FRAME FROM SHARED CAMERA
+# ============================================================
+
+def process_barcode_frame(frame):
+    """
+    Check one frame supplied by the shared camera for a
+    Data Matrix code.
+
+    Returns:
+        parsed barcode dictionary if detected
+        None if no Data Matrix is detected
+    """
+
+    frame_height, frame_width = frame.shape[:2]
+
+    # Central scan region
+    scan_width = int(frame_width * 0.70)
+    scan_height = int(frame_height * 0.72)
+
+    scan_x1 = (frame_width - scan_width) // 2
+    scan_y1 = (frame_height - scan_height) // 2
+
+    scan_x2 = scan_x1 + scan_width
+    scan_y2 = scan_y1 + scan_height
+
+    scan_area = frame[
+        scan_y1:scan_y2,
+        scan_x1:scan_x2
+    ].copy()
+
+    # Try to decode Data Matrix
+    detected_item, detection_method = decode_scan_area(
+        scan_area
+    )
+
+    if detected_item is None:
+        return None
+
+    # Decode raw barcode data
+    raw_data = detected_item.data.decode(
+        "utf-8",
+        errors="replace"
+    )
+
+    # Convert raw barcode into your dictionary
+    parsed_data = parse_datamatrix(raw_data)
+
+    print_result(
+        raw_data,
+        parsed_data,
+        detection_method
+    )
+
+    return parsed_data
+
 def scan_barcode():
     # ============================================================
     # CAMERA SETUP
