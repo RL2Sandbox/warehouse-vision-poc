@@ -63,6 +63,8 @@ success_time = None
 
 yolo_display_frame= None
 
+upload_attempted= False
+
 print("Warehouse Vision POC started.")
 print("Press Q to quit.")
 
@@ -108,6 +110,7 @@ try:
 
                 # Clear the previous YOLO bounding-box frame
                 yolo_display_frame = None
+                upload_attempted = False
 
                 success_time = None
 
@@ -206,6 +209,7 @@ try:
         if (
             success_time is None
             and ready()
+            and not upload_attempted
         ):
             record = get_session()
 
@@ -221,6 +225,8 @@ try:
             print("\nUploading inspection to GCP...")
 
             status.show_uploading()
+
+            upload_attempted = True
 
             upload_success = upload_record(record)
 
