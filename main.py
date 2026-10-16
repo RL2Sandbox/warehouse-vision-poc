@@ -29,9 +29,9 @@ DAMAGE_CHECK_EVERY = 4
 
 # Damage detection inspection area
 # Adjust these values to match the white background
-ROI_X1 = 500
+ROI_X1 = 540
 ROI_Y1 = 120
-ROI_X2 = 1150
+ROI_X2 = 1190
 ROI_Y2 = 650
 
 # Prevent immediate detection of the next carton while the
