@@ -25,7 +25,7 @@ from cloud.gcp_upload import upload_record
 
 # Do not run expensive detection on every camera frame.
 BARCODE_CHECK_EVERY = 3
-DAMAGE_CHECK_EVERY = 6
+DAMAGE_CHECK_EVERY = 4
 
 # Prevent immediate detection of the next carton while the
 # success message is being shown.
@@ -62,6 +62,7 @@ frame_number = 0
 success_time = None
 
 yolo_display_frame= None
+damage_display_time= None
 
 upload_attempted= False
 
@@ -176,7 +177,8 @@ try:
                 damage_captured = True
                 
                 # Do not leave the last YOLO frame frozen on screen
-                yolo_display_frame = None
+                #yolo_display_frame = None
+                damage_display_time = time.time()
                 
                 print("\nDamage stored.")
 
@@ -276,18 +278,31 @@ try:
         # DRAW OPERATOR STATUS
         # ====================================================
 
-        # Start with the CURRENT live camera frame
+        
+        # Always start from current live camera
         display_frame = frame.copy()
-
-        # Only show the YOLO annotated frame while
-        # damage detection is actively running
+        
+        
+        # Show current YOLO output while searching for damage
         if (
             not damage_captured
             and yolo_display_frame is not None
         ):
             display_frame = yolo_display_frame.copy()
         
-        # Draw operator status on top
+        
+        # After valid damage is captured,
+        # keep the successful bounding box visible briefly
+        elif (
+            damage_captured
+            and yolo_display_frame is not None
+            and damage_display_time is not None
+            and time.time() - damage_display_time < 1.5
+        ):
+            display_frame = yolo_display_frame.copy()
+        
+        
+        # Draw status message on top
         display_frame = status.draw(
             display_frame
         )
