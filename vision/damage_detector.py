@@ -13,7 +13,7 @@ import os
 
 MODEL_PATH = "model/weights (2).pt"
 
-CONFIDENCE_THRESHOLD=0.55
+CONFIDENCE_THRESHOLD=0.50
 
 model = YOLO(MODEL_PATH)
 
