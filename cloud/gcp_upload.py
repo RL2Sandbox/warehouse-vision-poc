@@ -72,6 +72,11 @@ def upload_record(record):
             "unknown"
         )
 
+        serial_number = barcode_data.get(
+            "S",
+            "unknown"
+        )
+
         damage_type = damage_data.get(
             "damage_type",
             "unknown"
@@ -92,7 +97,7 @@ def upload_record(record):
 
         inspection_folder = (
             f"inspections/"
-            f"{ma_number}/"
+            f"{serial_number}/"
             f"{timestamp}"
         )
 
@@ -144,8 +149,9 @@ def upload_record(record):
 
         inspection_record = {
             "timestamp": timestamp,
+            "serial_number": serial_number,
             "ma_number": ma_number,
-
+            
             "barcode": barcode_data,
 
             "damage": {
