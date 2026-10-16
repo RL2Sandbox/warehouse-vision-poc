@@ -27,6 +27,13 @@ from cloud.gcp_upload import upload_record
 BARCODE_CHECK_EVERY = 3
 DAMAGE_CHECK_EVERY = 4
 
+# Damage detection inspection area
+# Adjust these values to match the white background
+ROI_X1 = 500
+ROI_Y1 = 120
+ROI_X2 = 1150
+ROI_Y2 = 650
+
 # Prevent immediate detection of the next carton while the
 # success message is being shown.
 SUCCESS_DISPLAY_SECONDS = 3
@@ -86,12 +93,20 @@ try:
 
         # CameraManager supplies RGB888.
         # OpenCV normally displays BGR.
+        
         frame = cv2.cvtColor(
             rgb_frame,
             cv2.COLOR_RGB2BGR
         )
-
+        
+        # Crop only the controlled inspection area for YOLO
+        inspection_frame = frame[
+            ROI_Y1:ROI_Y2,
+            ROI_X1:ROI_X2
+        ].copy()
+        
         frame_number += 1
+
 
 
         # ====================================================
@@ -165,7 +180,7 @@ try:
         ):
 
             damage_result, yolo_display_frame = process_damage_frame(
-                frame
+                inspection_frame
             )
 
             if damage_result is not None:
