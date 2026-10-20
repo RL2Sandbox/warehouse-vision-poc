@@ -46,7 +46,6 @@ class CameraManager:
                     "format": "RGB888",
                 },
                 buffer_count=4,
-                queue=False,
             )
         )
 
