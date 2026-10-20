@@ -93,16 +93,16 @@ try:
         # GET ONE FRAME FROM THE SHARED CAMERA
         # ----------------------------------------------------
 
-        #rgb_frame = camera.get_frame()
+        rgb_frame = camera.get_frame()
 
         # CameraManager supplies RGB888.
         # OpenCV normally displays BGR.
         
-        #frame = cv2.cvtColor(
-            #rgb_frame,
-            #cv2.COLOR_RGB2BGR
-        #)
-        frame = camera.get_frame()
+        frame = cv2.cvtColor(
+            rgb_frame,
+            cv2.COLOR_RGB2BGR
+        )
+        ##frame = camera.get_frame()
         
         frame_number += 1
 
