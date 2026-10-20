@@ -140,38 +140,38 @@ try:
                 print("\nReady for next carton.")
 
 
-        # ====================================================
-        # BARCODE DETECTION
-        # ====================================================
+        # # ====================================================
+        # # BARCODE DETECTION
+        # # ====================================================
 
-        if (
-            success_time is None
-            and not barcode_captured
-            and frame_number % BARCODE_CHECK_EVERY == 0
-        ):
+        # if (
+        #     success_time is None
+        #     and not barcode_captured
+        #     and frame_number % BARCODE_CHECK_EVERY == 0
+        # ):
 
-            barcode_data = process_barcode_frame(
-                frame
-            )
+        #     barcode_data = process_barcode_frame(
+        #         frame
+        #     )
 
-            if barcode_data is not None:
+        #     if barcode_data is not None:
 
-                update_barcode(
-                    barcode_data
-                )
+        #         update_barcode(
+        #             barcode_data
+        #         )
 
-                barcode_captured = True
+        #         barcode_captured = True
 
-                print("\nBarcode stored.")
-                print(barcode_data)
+        #         print("\nBarcode stored.")
+        #         print(barcode_data)
 
-                status.show_barcode_captured(
-                    barcode_data
-                )
+        #         status.show_barcode_captured(
+        #             barcode_data
+        #         )
 
-                if not damage_captured:
+        #         if not damage_captured:
 
-                    status.show_waiting_for_damage()
+        #             status.show_waiting_for_damage()
 
 
 #         # ====================================================
