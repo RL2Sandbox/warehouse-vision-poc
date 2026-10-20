@@ -25,7 +25,7 @@ from cloud.gcp_upload import upload_record
 
 # Do not run expensive detection on every camera frame.
 BARCODE_CHECK_EVERY = 3
-DAMAGE_CHECK_EVERY = 4
+DAMAGE_CHECK_EVERY = 4000
 
 #damage must be detected consistently before capture
 DAMAGE_CONFIRM_FRAMES = 3
