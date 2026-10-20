@@ -25,7 +25,7 @@ from cloud.gcp_upload import upload_record
 
 # Do not run expensive detection on every camera frame.
 BARCODE_CHECK_EVERY = 3
-DAMAGE_CHECK_EVERY = 4000
+DAMAGE_CHECK_EVERY = 4
 
 #damage must be detected consistently before capture
 DAMAGE_CONFIRM_FRAMES = 3
@@ -93,16 +93,16 @@ try:
         # GET ONE FRAME FROM THE SHARED CAMERA
         # ----------------------------------------------------
 
-        rgb_frame = camera.get_frame()
+        #rgb_frame = camera.get_frame()
 
         # CameraManager supplies RGB888.
         # OpenCV normally displays BGR.
         
-        frame = cv2.cvtColor(
-            rgb_frame,
-            cv2.COLOR_RGB2BGR
-        )
-        ##frame = camera.get_frame()
+        #frame = cv2.cvtColor(
+            #rgb_frame,
+            #cv2.COLOR_RGB2BGR
+        #)
+        frame = camera.get_frame()
         
         frame_number += 1
 
