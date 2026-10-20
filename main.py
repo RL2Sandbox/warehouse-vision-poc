@@ -27,6 +27,9 @@ from cloud.gcp_upload import upload_record
 BARCODE_CHECK_EVERY = 3
 DAMAGE_CHECK_EVERY = 4
 
+#damage must be detected consistently before capture
+DAMAGE_CONFIRM_FRAMES = 3
+DAMAGE_CONFIRM_WINDOW = 2.0
 
 
 # Prevent immediate detection of the next carton while the
@@ -63,10 +66,16 @@ frame_number = 0
 
 success_time = None
 
-yolo_display_frame= None
-damage_display_time= None
+yolo_display_frame = None
+damage_display_time = None
 
-upload_attempted= False
+# Damage confirmation tracking
+damage_candidate_type = None
+damage_candidate_count = 0
+damage_candidate_start = None
+damage_candidate_result = None
+
+upload_attempted = False
 
 print("Warehouse Vision POC started.")
 print("Press Q to quit.")
@@ -117,6 +126,12 @@ try:
                 # Clear the previous YOLO bounding-box frame
                 yolo_display_frame = None
                 upload_attempted = False
+
+                damage_candidate_type = None
+                damage_candidate_count = 0
+                damage_candidate_start = None
+                damage_candidate_result = None
+                damage_display_time = None
 
                 success_time = None
 
@@ -172,40 +187,92 @@ try:
             damage_result, yolo_display_frame = process_damage_frame(
                 frame
             )
-
+############
             if damage_result is not None:
 
-                update_damage(
-                    damage_result
+                current_time = time.time()
+                current_type = damage_result["damage_type"]
+
+                # Has too much time passed since the candidate started?
+                candidate_expired = (
+                    damage_candidate_start is not None
+                    and current_time - damage_candidate_start
+                    > DAMAGE_CONFIRM_WINDOW
                 )
 
-                damage_captured = True
-                
-                # Do not leave the last YOLO frame frozen on screen
-                #yolo_display_frame = None
-                damage_display_time = time.time()
-                
-                print("\nDamage stored.")
+                # Has YOLO changed its mind about the damage class?
+                different_damage = (
+                    damage_candidate_type is not None
+                    and current_type != damage_candidate_type
+                )
 
 
+                # ========================================================
+                # START / RESTART DAMAGE CONFIRMATION
+                # ========================================================
+            
+                if (
+                    damage_candidate_type is None
+                    or candidate_expired
+                    or different_damage
+                ):
+            
+                    damage_candidate_type = current_type
+                    damage_candidate_count = 1
+                    damage_candidate_start = current_time
+            
+                else:
+            
+                    damage_candidate_count += 1
+            
+            
+                # Keep most recent detection result
+                damage_candidate_result = damage_result
+            
+            
                 print(
-                    "Damage Type:",
-                    damage_result["damage_type"]
+                    f"Confirming {current_type}: "
+                    f"{damage_candidate_count}/"
+                    f"{DAMAGE_CONFIRM_FRAMES}"
                 )
-
-                print(
-                    "Confidence:",
-                    f"{damage_result['confidence'] * 100:.1f}%"
-                )
-
-                status.show_damage_captured(
-                    damage_result["damage_type"],
-                    damage_result["confidence"]
-                )
-
-                if not barcode_captured:
-
-                    status.show_waiting_for_barcode()
+            
+            
+                # ========================================================
+                # DAMAGE CONFIRMED
+                # ========================================================
+            
+                if damage_candidate_count >= DAMAGE_CONFIRM_FRAMES:
+            
+                    update_damage(
+                        damage_candidate_result
+                    )
+            
+                    damage_captured = True
+            
+                    damage_display_time = current_time
+            
+                    print("\nDamage confirmed and stored.")
+            
+                    print(
+                        "Damage Type:",
+                        damage_candidate_result["damage_type"]
+                    )
+            
+                    print(
+                        "Confidence:",
+                        f"{damage_candidate_result['confidence'] * 100:.1f}%"
+                    )
+            
+                    status.show_damage_captured(
+                        damage_candidate_result["damage_type"],
+                        damage_candidate_result["confidence"]
+                    )
+            
+                    if not barcode_captured:
+            
+                        status.show_waiting_for_barcode()
+            #############
+            
 
 
         # ====================================================
