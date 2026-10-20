@@ -140,138 +140,138 @@ try:
                 print("\nReady for next carton.")
 
 
-        # # ====================================================
-        # # BARCODE DETECTION
-        # # ====================================================
+        # ====================================================
+        # BARCODE DETECTION
+        # ====================================================
 
-        # if (
-        #     success_time is None
-        #     and not barcode_captured
-        #     and frame_number % BARCODE_CHECK_EVERY == 0
-        # ):
+        if (
+            success_time is None
+            and not barcode_captured
+            and frame_number % BARCODE_CHECK_EVERY == 0
+        ):
 
-        #     barcode_data = process_barcode_frame(
-        #         frame
-        #     )
+            barcode_data = process_barcode_frame(
+                frame
+            )
 
-        #     if barcode_data is not None:
+            if barcode_data is not None:
 
-        #         update_barcode(
-        #             barcode_data
-        #         )
+                update_barcode(
+                    barcode_data
+                )
 
-        #         barcode_captured = True
+                barcode_captured = True
 
-        #         print("\nBarcode stored.")
-        #         print(barcode_data)
+                print("\nBarcode stored.")
+                print(barcode_data)
 
-        #         status.show_barcode_captured(
-        #             barcode_data
-        #         )
+                status.show_barcode_captured(
+                    barcode_data
+                )
 
-        #         if not damage_captured:
+                if not damage_captured:
 
-        #             status.show_waiting_for_damage()
-
-
-#         # ====================================================
-#         # DAMAGE DETECTION
-#         # ====================================================
-
-#         if (
-#             success_time is None
-#             and not damage_captured
-#             and frame_number % DAMAGE_CHECK_EVERY == 0
-#         ):
-
-#             damage_result, yolo_display_frame = process_damage_frame(
-#                 frame
-#             )
-# ############
-#             if damage_result is not None:
-
-#                 current_time = time.time()
-#                 current_type = damage_result["damage_type"]
-
-#                 # Has too much time passed since the candidate started?
-#                 candidate_expired = (
-#                     damage_candidate_start is not None
-#                     and current_time - damage_candidate_start
-#                     > DAMAGE_CONFIRM_WINDOW
-#                 )
-
-#                 # Has YOLO changed its mind about the damage class?
-#                 different_damage = (
-#                     damage_candidate_type is not None
-#                     and current_type != damage_candidate_type
-#                 )
+                    status.show_waiting_for_damage()
 
 
-#                 # ========================================================
-#                 # START / RESTART DAMAGE CONFIRMATION
-#                 # ========================================================
+        # ====================================================
+        # DAMAGE DETECTION
+        # ====================================================
+
+        if (
+            success_time is None
+            and not damage_captured
+            and frame_number % DAMAGE_CHECK_EVERY == 0
+        ):
+
+            damage_result, yolo_display_frame = process_damage_frame(
+                frame
+            )
+############
+            if damage_result is not None:
+
+                current_time = time.time()
+                current_type = damage_result["damage_type"]
+
+                # Has too much time passed since the candidate started?
+                candidate_expired = (
+                    damage_candidate_start is not None
+                    and current_time - damage_candidate_start
+                    > DAMAGE_CONFIRM_WINDOW
+                )
+
+                # Has YOLO changed its mind about the damage class?
+                different_damage = (
+                    damage_candidate_type is not None
+                    and current_type != damage_candidate_type
+                )
+
+
+                # ========================================================
+                # START / RESTART DAMAGE CONFIRMATION
+                # ========================================================
             
-#                 if (
-#                     damage_candidate_type is None
-#                     or candidate_expired
-#                     or different_damage
-#                 ):
+                if (
+                    damage_candidate_type is None
+                    or candidate_expired
+                    or different_damage
+                ):
             
-#                     damage_candidate_type = current_type
-#                     damage_candidate_count = 1
-#                     damage_candidate_start = current_time
+                    damage_candidate_type = current_type
+                    damage_candidate_count = 1
+                    damage_candidate_start = current_time
             
-#                 else:
+                else:
             
-#                     damage_candidate_count += 1
-            
-            
-#                 # Keep most recent detection result
-#                 damage_candidate_result = damage_result
+                    damage_candidate_count += 1
             
             
-#                 print(
-#                     f"Confirming {current_type}: "
-#                     f"{damage_candidate_count}/"
-#                     f"{DAMAGE_CONFIRM_FRAMES}"
-#                 )
+                # Keep most recent detection result
+                damage_candidate_result = damage_result
             
             
-#                 # ========================================================
-#                 # DAMAGE CONFIRMED
-#                 # ========================================================
+                print(
+                    f"Confirming {current_type}: "
+                    f"{damage_candidate_count}/"
+                    f"{DAMAGE_CONFIRM_FRAMES}"
+                )
             
-#                 if damage_candidate_count >= DAMAGE_CONFIRM_FRAMES:
             
-#                     update_damage(
-#                         damage_candidate_result
-#                     )
+                # ========================================================
+                # DAMAGE CONFIRMED
+                # ========================================================
             
-#                     damage_captured = True
+                if damage_candidate_count >= DAMAGE_CONFIRM_FRAMES:
             
-#                     damage_display_time = current_time
+                    update_damage(
+                        damage_candidate_result
+                    )
             
-#                     print("\nDamage confirmed and stored.")
+                    damage_captured = True
             
-#                     print(
-#                         "Damage Type:",
-#                         damage_candidate_result["damage_type"]
-#                     )
+                    damage_display_time = current_time
             
-#                     print(
-#                         "Confidence:",
-#                         f"{damage_candidate_result['confidence'] * 100:.1f}%"
-#                     )
+                    print("\nDamage confirmed and stored.")
             
-#                     status.show_damage_captured(
-#                         damage_candidate_result["damage_type"],
-#                         damage_candidate_result["confidence"]
-#                     )
+                    print(
+                        "Damage Type:",
+                        damage_candidate_result["damage_type"]
+                    )
             
-#                     if not barcode_captured:
+                    print(
+                        "Confidence:",
+                        f"{damage_candidate_result['confidence'] * 100:.1f}%"
+                    )
             
-#                         status.show_waiting_for_barcode()
-#             #############
+                    status.show_damage_captured(
+                        damage_candidate_result["damage_type"],
+                        damage_candidate_result["confidence"]
+                    )
+            
+                    if not barcode_captured:
+            
+                        status.show_waiting_for_barcode()
+            #############
             
 
 
