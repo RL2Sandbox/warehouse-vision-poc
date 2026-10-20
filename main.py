@@ -3,7 +3,7 @@ import time
 
 from camera.camera_manager import CameraManager
 
-from barcode.scan_trial import process_barcode_frame
+from barcode.barcode_scan import process_barcode_frame
 
 from vision.damage_detector import process_damage_frame
 
