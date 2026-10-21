@@ -28,7 +28,7 @@ BARCODE_CHECK_EVERY = 3
 DAMAGE_CHECK_EVERY = 4
 
 #damage must be detected consistently before capture
-DAMAGE_CONFIRM_FRAMES = 3
+DAMAGE_CONFIRM_FRAMES = 2
 DAMAGE_CONFIRM_WINDOW = 2.0
 
 
